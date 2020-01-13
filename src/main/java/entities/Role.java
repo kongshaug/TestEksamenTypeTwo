@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 
 /**
  *
- * @author Plaul
+ * @author Benjamin
  */
 @Entity
 @Table(name = "ROLE")
