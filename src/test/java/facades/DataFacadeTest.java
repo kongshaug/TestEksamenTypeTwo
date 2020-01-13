@@ -63,14 +63,14 @@ public class DataFacadeTest {
      *
      * @throws java.lang.Exception
      */
-    @Test
-    public void testGetData() throws Exception {
-        System.out.println("getData");
-        List<QuoteDTO> result = facade.getData();
-        assertTrue(result.size() > 0);
-
-        assertTrue(result.get(1) != null);
-
-    }
+//    @Test
+//    public void testGetData() throws Exception {
+//        System.out.println("getData");
+//        List<QuoteDTO> result = facade.getData();
+//        assertTrue(result.size() > 0);
+//
+//        assertTrue(result.get(1) != null);
+//
+//    }
 
 }

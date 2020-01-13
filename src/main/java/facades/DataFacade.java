@@ -5,13 +5,21 @@
  */
 package facades;
 
+import DTO.JokeDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import DTO.QuoteDTO;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -22,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  *
@@ -44,57 +53,62 @@ public class DataFacade {
         return instance;
     }
 
-    private String getQuoteData() throws MalformedURLException, IOException {
-        URL url = new URL("https://quote-garden.herokuapp.com/quotes/random");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Accept", "application/json;charset=UTF-8");
-//    con.setRequestProperty("User-Agent", "server"); //remember if you are using SWAPI
-        Scanner scan = new Scanner(con.getInputStream());
-        String jsonStr = null;
-        if (scan.hasNext()) {
-            jsonStr = scan.nextLine();
+    private JokeDTO getJokeData(String categori) throws MalformedURLException, IOException, Exception {
+       try {
+            URL siteURL = new URL("https://api.chucknorris.io/jokes/random?category="+ categori);
+            HttpURLConnection connection = (HttpURLConnection) 
+	    siteURL.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
+            connection.setRequestProperty("user-agent", "Application");
+            
+            try (Scanner scan = new Scanner(connection.getInputStream(), "UTF-8")) {
+                String response = "";
+                while (scan.hasNext()) {
+                    response += scan.nextLine();
+                }
+                JsonParser jsonParser = new JsonParser();
+                JsonElement jsonElement = jsonParser.parse(response);
+           
+                    JokeDTO joke = GSON.fromJson(response, JokeDTO.class);
+                    return joke;
+               
+            }
+        } catch (Exception e) {
+            throw new Exception("API request went wrong:" + e.getMessage());
         }
-        scan.close();
-        return jsonStr;
     }
 
-    public List<QuoteDTO> getData() throws InterruptedException, ExecutionException {
-        List<QuoteDTO> quotes = new ArrayList<>();
-        Queue<Future<QuoteDTO>> queue = new ArrayBlockingQueue(5);
-
-        for (int i = 1; i <= 5; i++) {
-            Future<QuoteDTO> future = executor.submit(() -> {
+    public List<JokeDTO> getData(String[] categories) throws InterruptedException, ExecutionException, IOException, Exception {
+        List<JokeDTO> jokes = new ArrayList<>();
+        Queue<Future<JokeDTO>> queue = new ArrayBlockingQueue(5); // MAX QUEUE !!!!
+      
+        for (int i = 0; i < categories.length; i++) {
+            int j = i;
+            Future<JokeDTO> future = executor.submit(() -> {
                 
-                QuoteDTO quote = GSON.fromJson(getQuoteData(), QuoteDTO.class);
-                return quote;
+                JokeDTO joke = getJokeData(categories[j]);
+                return joke;
             });
 
             queue.add(future);
         }
         while (!queue.isEmpty()) {
-            Future<QuoteDTO> qoute = queue.poll();
-            if (qoute.isDone()) {
-                quotes.add(qoute.get());
+            Future<JokeDTO> joke = queue.poll();
+            if (joke.isDone()) {
+                JokeDTO j = joke.get();
+                 jokes.add(j);
             } else {
-                queue.add(qoute);
+                queue.add(joke);
             }
         }
 
-        return quotes;
+        return jokes;
     }
     
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
-        
-        DataFacade df = DataFacade.getDataFacade();
-        
-        List<QuoteDTO> qoutes = df.getData();
-        
-        for (QuoteDTO qoute : qoutes) {
-            System.out.println(qoute);
-        }
-        
-    }
+    
+    
+  
 
 }
 

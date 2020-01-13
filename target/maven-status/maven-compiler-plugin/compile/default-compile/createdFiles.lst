@@ -4,6 +4,7 @@ security\SharedSecret.class
 utils\EMF_Creator$Strategy$1.class
 errorhandling\AuthenticationException.class
 facades\DataFacade.class
+DTO\JokeDTO.class
 utils\EMF_Creator$DbSelector.class
 rest\ApplicationConfig.class
 utils\EMF_Creator$1.class
@@ -24,9 +25,9 @@ security\JWTAuthenticationFilter.class
 utils\Settings.class
 cors\CorsRequestFilter.class
 cors\CorsResponseFilter.class
-rest\QuoteResource.class
 security\RolesAllowedFilter.class
 errorhandling\NotFoundException.class
+rest\JokeResource.class
 entities\Role_.class
 errorhandling\ExceptionDTO.class
 utils\EMF_Creator.class
