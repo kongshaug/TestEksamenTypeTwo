@@ -5,7 +5,9 @@
  */
 package facades;
 
+import DTO.Joke;
 import DTO.JokeDTO;
+import DTO.JokesDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import DTO.QuoteDTO;
@@ -53,15 +55,14 @@ public class DataFacade {
         return instance;
     }
 
-    private JokeDTO getJokeData(String categori) throws MalformedURLException, IOException, Exception {
-       try {
-            URL siteURL = new URL("https://api.chucknorris.io/jokes/random?category="+ categori);
-            HttpURLConnection connection = (HttpURLConnection) 
-	    siteURL.openConnection();
+    private Joke getJokeData(String categori) throws MalformedURLException, IOException, Exception {
+        try {
+            URL siteURL = new URL("https://api.chucknorris.io/jokes/random?category=" + categori);
+            HttpURLConnection connection = (HttpURLConnection) siteURL.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
             connection.setRequestProperty("user-agent", "Application");
-            
+
             try (Scanner scan = new Scanner(connection.getInputStream(), "UTF-8")) {
                 String response = "";
                 while (scan.hasNext()) {
@@ -69,46 +70,44 @@ public class DataFacade {
                 }
                 JsonParser jsonParser = new JsonParser();
                 JsonElement jsonElement = jsonParser.parse(response);
-           
-                    JokeDTO joke = GSON.fromJson(response, JokeDTO.class);
-                    return joke;
-               
+                Joke joke = GSON.fromJson(response, Joke.class);
+                return joke;
+
             }
         } catch (Exception e) {
             throw new Exception("API request went wrong:" + e.getMessage());
         }
     }
 
-    public List<JokeDTO> getData(String[] categories) throws InterruptedException, ExecutionException, IOException, Exception {
-        List<JokeDTO> jokes = new ArrayList<>();
-        Queue<Future<JokeDTO>> queue = new ArrayBlockingQueue(5); // MAX QUEUE !!!!
-      
+    public JokesDTO getData(String[] categories) throws InterruptedException, ExecutionException, IOException, Exception {
+        ArrayList<Joke> jokes = new ArrayList<>();
+        Queue<Future<Joke>> queue = new ArrayBlockingQueue(12); // MAX QUEUE !!!!
+
         for (int i = 0; i < categories.length; i++) {
             int j = i;
-            Future<JokeDTO> future = executor.submit(() -> {
-                
-                JokeDTO joke = getJokeData(categories[j]);
+            Future<Joke> future = executor.submit(() -> {
+
+                Joke joke = getJokeData(categories[j]);
                 return joke;
             });
 
             queue.add(future);
         }
         while (!queue.isEmpty()) {
-            Future<JokeDTO> joke = queue.poll();
+            Future<Joke> joke = queue.poll();
             if (joke.isDone()) {
-                JokeDTO j = joke.get();
-                 jokes.add(j);
+                Joke j = joke.get();
+                jokes.add(j);
             } else {
                 queue.add(joke);
             }
         }
-
-        return jokes;
+        ArrayList<JokeDTO> DTOjokes = new ArrayList<JokeDTO>();
+        for (Joke joke :  jokes) {
+            DTOjokes.add(new JokeDTO(joke));
+        }
+        JokesDTO jokesDTO = new JokesDTO(DTOjokes);
+        return jokesDTO;
     }
-    
-    
-    
-  
 
 }
-

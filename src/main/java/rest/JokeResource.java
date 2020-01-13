@@ -5,7 +5,8 @@
  */
 package rest;
 
-import DTO.JokeDTO;
+import DTO.Joke;
+import DTO.JokesDTO;
 import DTO.QuoteDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,6 +14,7 @@ import errorhandling.NotFoundException;
 import facades.DataFacade;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.persistence.EntityManagerFactory;
@@ -47,10 +49,18 @@ public class JokeResource {
         String[] CategoriList = categories.split(",");
         if(CategoriList.length > 4)
         {
-        //Make error message with max length of request
+        return "{\"msg\":\"to many categories you searched for "+CategoriList.length +" but only 4 is allowed\"}";
+        }
+        String[] catego = {"Career", "celebrity", "dev", "explicit", "fashion", "food", "history", "money", "movie", "music", "political", "science", "sport", "travel"};
+       List<String> CategoriesList = Arrays.asList(catego);
+        for (String subject : CategoriList) {
+               if (!CategoriesList.contains(subject)){
+           return "{\"msg\":\""+subject+" is not a categorie option\"}";
+        }
+    
         }
         try {
-            List<JokeDTO> Jokes = DF.getData(CategoriList);
+            JokesDTO Jokes = DF.getData(CategoriList);
             return GSON.toJson(Jokes);
         } catch (InterruptedException | ExecutionException ex) {
 

@@ -5,23 +5,24 @@
  */
 package DTO;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author benja
  */
-public class JokeDTO {
+public class JokesDTO {
     
-    private String joke;
-    private String category;
+    private ArrayList<JokeDTO> Jokes;
+    private String Reference = "api.chucknorris.io";
 
-    public JokeDTO(Joke joke) {
-        this.joke = joke.getValue();
-        this.category = joke.getCategories()[0];
+    public JokesDTO(ArrayList<JokeDTO> Jokes) {
+        this.Jokes = Jokes;
     }
 
-
-
   
-
+    
+    
     
 }
